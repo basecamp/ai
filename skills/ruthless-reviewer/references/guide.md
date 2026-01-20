@@ -196,8 +196,9 @@ Synthesis proposal template (implementer writes, mediator approves):
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
 
-**Mediator Approval:** [pending/approved by NAME]
+**Mediator Approval:** pending
 ```
+(When mediator gives approval, replace "pending" with "approved by NAME")
 
 ### Step C: Implement
 Before ping-back, implement the agreed changes. Don't review stale artifacts.
@@ -333,7 +334,7 @@ Choose the checks based on orchestration mode.
 | 10 | Self-Review per round | `grep -c "^### Self-Review" review-log.md` | Count = rounds |
 | 11 | External Review per round | `grep -c "^### External Review" review-log.md` | Count = rounds |
 | 12 | Reconciliation per round | `grep -c "^### Reconciliation" review-log.md` | Count = rounds |
-| 13 | Mediator approval per round | `grep -c "^\*\*Mediator Approval:\*\*.*approved" review-log.md` | Count = rounds |
+| 13 | Mediator approval per round | `grep -cE "^\*\*Mediator Approval:\*\* approved by [^[]" review-log.md` | Count = rounds |
 
 ```bash
 # Quick check script
@@ -361,7 +362,8 @@ grep -qE "Decision points:|DECISION POINT:" review-log.md && echo "PASS" || echo
 echo "8) Approvals logged (if decisions):"
 # Check if any decision point is NOT "none this round"
 if grep -E "Decision points:|DECISION POINT:" review-log.md | grep -qv "none this round"; then
-  grep -q "Approved:" review-log.md && echo "PASS" || echo "FAIL (decision without approval)"
+  # Require "Approved:" followed by non-bracket content (not placeholder text)
+  grep -qE "Approved: [^[]" review-log.md && echo "PASS" || echo "FAIL (decision without approval)"
 else
   echo "PASS (no decisions)"
 fi
@@ -385,7 +387,7 @@ reconciliations=$(grep -c "^### Reconciliation" review-log.md || echo 0)
 [ "$rounds" -eq "$reconciliations" ] && echo "PASS ($reconciliations reconciliations)" || echo "WARN: $rounds rounds, $reconciliations reconciliations"
 
 echo "13) Mediator approval per round:"
-approvals=$(grep -c "^\*\*Mediator Approval:\*\*.*approved" review-log.md || echo 0)
+approvals=$(grep -cE "^\*\*Mediator Approval:\*\* approved by [^[]" review-log.md || echo 0)
 [ "$rounds" -eq "$approvals" ] && echo "PASS ($approvals approvals)" || echo "WARN: $rounds rounds, $approvals mediator approvals"
 ```
 
@@ -405,7 +407,7 @@ approvals=$(grep -c "^\*\*Mediator Approval:\*\*.*approved" review-log.md || ech
 | 10 | Self-Review per round | `grep -c "^### Self-Review" review-session.md` | Count = rounds |
 | 11 | External Review per round | `grep -c "^### External Review" review-session.md` | Count = rounds |
 | 12 | Reconciliation per round | `grep -c "^### Reconciliation" review-session.md` | Count = rounds |
-| 13 | Mediator approval per round | `grep -c "^\*\*Mediator Approval:\*\*.*approved" review-session.md` | Count = rounds |
+| 13 | Mediator approval per round | `grep -cE "^\*\*Mediator Approval:\*\* approved by [^[]" review-session.md` | Count = rounds |
 | 14 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
 
 ```bash
@@ -434,7 +436,8 @@ grep -qE "Decision points:|DECISION POINT:" review-session.md && echo "PASS" || 
 echo "8) Approvals logged (if decisions):"
 # Check if any decision point is NOT "none this round"
 if grep -E "Decision points:|DECISION POINT:" review-session.md | grep -qv "none this round"; then
-  grep -q "Approved:" review-session.md && echo "PASS" || echo "FAIL (decision without approval)"
+  # Require "Approved:" followed by non-bracket content (not placeholder text)
+  grep -qE "Approved: [^[]" review-session.md && echo "PASS" || echo "FAIL (decision without approval)"
 else
   echo "PASS (no decisions)"
 fi
@@ -458,7 +461,7 @@ reconciliations=$(grep -c "^### Reconciliation" review-session.md || echo 0)
 [ "$rounds" -eq "$reconciliations" ] && echo "PASS ($reconciliations reconciliations)" || echo "WARN: $rounds rounds, $reconciliations reconciliations"
 
 echo "13) Mediator approval per round:"
-approvals=$(grep -c "^\*\*Mediator Approval:\*\*.*approved" review-session.md || echo 0)
+approvals=$(grep -cE "^\*\*Mediator Approval:\*\* approved by [^[]" review-session.md || echo 0)
 [ "$rounds" -eq "$approvals" ] && echo "PASS ($approvals approvals)" || echo "WARN: $rounds rounds, $approvals mediator approvals"
 
 echo "14) Final synthesis:"
@@ -482,6 +485,7 @@ If any check fails, fix the log structure before proceeding.
 | Implementer steamrolls decisions | Not escalating tradeoffs | Review escalation triggers, re-examine "by design" calls |
 | "By design" used defensively | Avoiding work vs genuine tradeoff | Mediator must approve all "by design" responses |
 | Fast convergence, wrong outcome | Implementer and reviewer aligned but wrong | Human mediator validates key decisions, not just pass/fail |
+| Eval checks pass on placeholder text | Template text contains patterns that match checks | Use negated character classes like `[^[]` to reject bracket placeholders |
 
 ---
 
@@ -542,7 +546,7 @@ Create `review-log.md` and append per round.
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
 
-**Mediator Approval:** [pending/approved by NAME]
+**Mediator Approval:** pending
 
 ---
 
@@ -576,6 +580,8 @@ Create `review-log.md` and append per round.
 - Open medium items accepted? [yes/no/N/A]
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
+
+**Mediator Approval:** pending
 ```
 
 ---
@@ -641,7 +647,7 @@ Thread ID: [from mcp__codex__codex response]
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
 
-**Mediator Approval:** [pending/approved by NAME]
+**Mediator Approval:** pending
 
 ---
 
@@ -684,6 +690,8 @@ Thread ID: [from mcp__codex__codex response]
 - Open medium items accepted? [yes/no/N/A]
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
+
+**Mediator Approval:** pending
 
 ---
 
