@@ -6,7 +6,7 @@ Run a mediated, manual multi-agent review loop by ping-ponging feedback between 
 
 ## Core Principle
 
-The loop is: Review -> Mediate -> Ping back -> Improve -> Repeat. The mediator enforces quality gates and convergence.
+The loop is: Review -> Mediate -> Improve -> Repeat (review updated artifact). The mediator enforces quality gates and convergence.
 
 A reviewer is not a judge. A reviewer is a signal generator. The mediator owns synthesis and decisions.
 
@@ -59,7 +59,7 @@ The common case. One implementer, one ruthless reviewer. Use when:
 
 In two-agent mode:
 - "Disagreements" captures self-review vs external review conflicts (not skipped - dual-review still produces potential disagreements)
-- Convergence = two consecutive rounds with no open H issues, no new deltas, AND all M issues fixed or explicitly accepted
+- Convergence: use Phase 3 conditions (same as multi-agent)
 - The external reviewer IS the ruthless reviewer
 
 ---
@@ -111,7 +111,7 @@ Pick one:
 The implementer is not just a fixer - they are also a reviewer. Every round follows this pattern:
 
 1. **Implementer self-reviews** - Before external review, the implementer examines their own work with fresh eyes. Produce H/M/L findings just like an external reviewer would.
-2. **External reviewer(s) review independently** - Without seeing the self-review findings.
+2. **External reviewer(s) review independently** - For Round 1, do not share self-review or other reviewers' feedback with external reviewers. Each reviewer produces findings independently. In later rounds, sharing the synthesis is fine - reviewers need to know what changed and why. The independence requirement is about getting unbiased initial signal, not about keeping reviewers in the dark about iteration history.
 3. **Reconcile** - Compare both sets of findings. Where do they agree? Where do they disagree? Steelman both perspectives.
 4. **Present decision points** - When reconciliation surfaces design tradeoffs, present them to the mediator via AskUserQuestion or text template.
 5. **Implement** - Address agreed actions.
@@ -122,7 +122,9 @@ This pattern prevents "outsourcing" review to external agents. The implementer m
 
 ## Phase 2: Round Loop
 
-Each round has five steps: Self-Review, External Review, Reconcile, Implement, Ping-back.
+Each round has four steps: Self-Review, External Review, Reconcile, Synthesize.
+
+**Between rounds:** After synthesis is approved, the implementer does the work. The next round opens with `### Changes` documenting what was done, then reviews the updated artifact.
 
 ### Step 0: Self-Review
 Before sending to external reviewers, the implementer reviews their own work:
@@ -139,6 +141,7 @@ ROLE: [Reviewer lens]
 TASK: Review the artifact for [goal].
 SCOPE: [in scope] / [out of scope]
 CONSTRAINTS:
+- For Round 1: Review independently - do not read self-review or other reviewers' feedback first
 - Be specific and actionable
 - Avoid repeats unless you add new evidence
 - If you disagree with another reviewer, say why
@@ -161,7 +164,7 @@ mcp__codex__codex(prompt="You are the ruthless reviewer... [artifact path] [scop
 
 Round N (reuse thread):
 ```
-mcp__codex__codex-reply(threadId="...", prompt="Here is the synthesis + changes. Provide deltas only (H/M/L labeled) - no repeats from previous rounds.")
+mcp__codex__codex-reply(threadId="...", prompt="Here is the updated artifact, changes made, and synthesis from Round N-1: [include key decisions, risks accepted]. Provide deltas only (H/M/L labeled) - no repeats from previous rounds.")
 ```
 
 Record `threadId` and round summaries in `review-session.md`.
@@ -200,12 +203,12 @@ Synthesis proposal template (implementer writes, mediator approves):
 ```
 (When mediator gives approval, replace "pending" with "approved by NAME")
 
-### Step C: Implement
-Before ping-back, implement the agreed changes. Don't review stale artifacts.
+### Between Rounds: Implement
+After synthesis is approved, the implementer addresses agreed actions before the next round begins.
 
 - Implementer addresses actions from synthesis
-- Log what changed: `### Changes (Round N)`
-- Gate: Changes logged before ping-back
+- Next round opens with `### Changes (Round N)` documenting what was done
+- Gate: Changes logged at start of next round (check #6: count = rounds - 1)
 
 **STOP for escalation** if any action involves:
 
@@ -262,24 +265,28 @@ Decision points: none this round.
 
 This creates an auditable trace that the agent checked. Silence cannot masquerade as compliance.
 
-**Discretion expected.** The trigger list is intentionally tight. Don't escalate every minor choice - that defeats the purpose too. Escalate design tradeoffs that shape the outcome.
+**Discretion expected.** The trigger list is intentionally tight. Don't escalate every minor choice - that defeats the purpose too. Escalate design tradeoffs that shape the outcome. When in doubt, escalate - it's better to over-communicate than to make unilateral design decisions.
 
-### Step D: Ping-back
-Send targeted follow-ups only. Ask for deltas, not repeats.
+### Starting the Next Round
+When beginning Round N+1, send targeted follow-ups. Ask for deltas on the updated artifact, not repeats.
 
 Ping-back prompt:
 ```
-Here is the synthesis. Respond with:
+Here is the updated artifact, what changed, and the synthesis from the previous round.
+
+[Include: changes made, key decisions, any risks accepted]
+
+Respond with:
 - Any critical misses (H/M/L labeled)
-- Any disagreement with the decision
+- Any disagreement with the decisions made
 - Any new issues (H/M/L labeled) - prioritize H/M, but don't suppress M issues
 No repeats from previous rounds. Use H/M/L severity labels.
 ```
 
 **Round gate:**
 - Each reviewer response uses H/M/L severity labels
-- Synthesis includes Consensus, Actions, Gate Status
-- Changes logged before ping-back (rounds > 1)
+- Synthesis includes Consensus, Disagreements, Actions, Gate Status
+- Changes logged at start of round (for rounds > 1)
 
 ---
 
@@ -290,7 +297,15 @@ Stop when the loop converges. Use one of these stop conditions:
 - No open H issues, all actions addressed, reviewers have no new deltas, AND all Medium issues either fixed or explicitly accepted
 - Time budget reached and risk is explicitly accepted by the mediator (not self-approved by implementer) - must document which H/M issues remain and why
 
-**Close-out artifact:** A final synthesis with decisions and next steps.
+**Close-out artifact:** A final synthesis with decisions, next steps, and human attestation.
+
+**Required attestation:** The mediator must include:
+```
+**Attestation:** I confirm this log reflects genuine review work, not template filling. - [NAME]
+```
+This creates accountability that automated checks cannot provide. Eval checks are smoke tests; attestation is the real gate.
+
+**Note:** The attestation is human accountability, not automated enforcement. If someone lies in their attestation, that's fraud - the system worked, the human failed. The check only verifies the field exists and isn't obviously a placeholder.
 
 ---
 
@@ -324,7 +339,7 @@ Choose the checks based on orchestration mode.
 |---|-------|---------|------|
 | 1 | Log exists | `test -f review-log.md` | File exists |
 | 2 | Each round has synthesis | `grep -c "^### Round .* Synthesis" review-log.md` | Count ≥ 1 |
-| 3 | Synthesis has required sections | `grep -E "^\*\*(Consensus|Actions|Gate Status):" review-log.md` | All 3 present per round |
+| 3 | Synthesis has required sections | `grep -E "^\*\*(Consensus|Disagreements|Actions|Gate Status):" review-log.md` | All 4 present per round |
 | 4 | H/M/L findings captured | `grep -qE "(^|[[:space:]-])([HML]:|High:|Medium:|Low:)" review-log.md` | Exit 0 |
 | 5 | Gate Status per round | `grep -c "^\*\*Gate Status:" review-log.md` | Count = rounds |
 | 6 | Changes logged (if round > 1) | `grep -c "^### Changes" review-log.md` | Count = rounds - 1 |
@@ -335,6 +350,9 @@ Choose the checks based on orchestration mode.
 | 11 | External Review per round | `grep -c "^### External Review" review-log.md` | Count = rounds |
 | 12 | Reconciliation per round | `grep -c "^### Reconciliation" review-log.md` | Count = rounds |
 | 13 | Mediator approval per round | `grep -cE "^\*\*Mediator Approval:\*\* approved by [^[]" review-log.md` | Count = rounds |
+| 14 | Final synthesis exists | `grep -q "^## Final Synthesis" review-log.md` | Exit 0 |
+| 15 | Attestation present | `grep -qE "^\*\*Attestation:\*\*.+- [^[]" review-log.md` | Exit 0 |
+| 16 | Disagreements per round | `grep -c "^\*\*Disagreements:" review-log.md` | Count = rounds |
 
 ```bash
 # Quick check script
@@ -344,8 +362,8 @@ test -f review-log.md && echo "PASS" || echo "FAIL"
 echo "2) Synthesis blocks:"
 grep -c "^### Round .* Synthesis" review-log.md || echo "0"
 
-echo "3) Required sections:"
-grep -E "^\*\*(Consensus|Actions|Gate Status):" review-log.md | wc -l
+echo "3) Required sections (expect 4 per round):"
+grep -E "^\*\*(Consensus|Disagreements|Actions|Gate Status):" review-log.md | wc -l
 
 echo "4) H/M/L findings:"
 grep -qE "(^|[[:space:]-])([HML]:|High:|Medium:|Low:)" review-log.md && echo "PASS" || echo "FAIL"
@@ -389,6 +407,16 @@ reconciliations=$(grep -c "^### Reconciliation" review-log.md || echo 0)
 echo "13) Mediator approval per round:"
 approvals=$(grep -cE "^\*\*Mediator Approval:\*\* approved by [^[]" review-log.md || echo 0)
 [ "$rounds" -eq "$approvals" ] && echo "PASS ($approvals approvals)" || echo "WARN: $rounds rounds, $approvals mediator approvals"
+
+echo "14) Final synthesis:"
+grep -q "^## Final Synthesis" review-log.md && echo "PASS" || echo "FAIL"
+
+echo "15) Attestation (THE REAL GATE):"
+grep -qE "^\*\*Attestation:\*\*.+- [^[]" review-log.md && echo "PASS" || echo "FAIL (missing human attestation)"
+
+echo "16) Disagreements per round:"
+disagreements=$(grep -c "^\*\*Disagreements:" review-log.md || echo 0)
+[ "$rounds" -eq "$disagreements" ] && echo "PASS ($disagreements disagreement sections)" || echo "WARN: $rounds rounds, $disagreements disagreement sections"
 ```
 
 ### MCP session checks (`review-session.md`)
@@ -409,6 +437,9 @@ approvals=$(grep -cE "^\*\*Mediator Approval:\*\* approved by [^[]" review-log.m
 | 12 | Reconciliation per round | `grep -c "^### Reconciliation" review-session.md` | Count = rounds |
 | 13 | Mediator approval per round | `grep -cE "^\*\*Mediator Approval:\*\* approved by [^[]" review-session.md` | Count = rounds |
 | 14 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
+| 15 | Attestation present | `grep -qE "^\*\*Attestation:\*\*.+- [^[]" review-session.md` | Exit 0 |
+| 16 | Disagreements per round | `grep -c "^\*\*Disagreements:" review-session.md` | Count = rounds |
+| 17 | Synthesis has required sections | `grep -E "^\*\*(Consensus|Disagreements|Actions|Gate Status):" review-session.md` | All 4 present per round |
 
 ```bash
 # Quick check script (MCP)
@@ -466,6 +497,16 @@ approvals=$(grep -cE "^\*\*Mediator Approval:\*\* approved by [^[]" review-sessi
 
 echo "14) Final synthesis:"
 grep -q "^## Final Synthesis" review-session.md && echo "PASS" || echo "FAIL"
+
+echo "15) Attestation (THE REAL GATE):"
+grep -qE "^\*\*Attestation:\*\*.+- [^[]" review-session.md && echo "PASS" || echo "FAIL (missing human attestation)"
+
+echo "16) Disagreements per round:"
+disagreements=$(grep -c "^\*\*Disagreements:" review-session.md || echo 0)
+[ "$rounds" -eq "$disagreements" ] && echo "PASS ($disagreements disagreement sections)" || echo "WARN: $rounds rounds, $disagreements disagreement sections"
+
+echo "17) Required sections (expect 4 per round):"
+grep -E "^\*\*(Consensus|Disagreements|Actions|Gate Status):" review-session.md | wc -l
 ```
 
 If any check fails, fix the log structure before proceeding.
@@ -486,6 +527,9 @@ If any check fails, fix the log structure before proceeding.
 | "By design" used defensively | Avoiding work vs genuine tradeoff | Mediator must approve all "by design" responses |
 | Fast convergence, wrong outcome | Implementer and reviewer aligned but wrong | Human mediator validates key decisions, not just pass/fail |
 | Eval checks pass on placeholder text | Template text contains patterns that match checks | Use negated character classes like `[^[]` to reject bracket placeholders |
+| Terse reviewer prompts produce shallow reviews | Bare "You are a ruthless reviewer" lacks context | Use rich prompts establishing role, relationship, expertise, collaborative framing |
+| Checks pass but no real work done | Eval checks are smoke tests, not proof of work | Require human attestation in final synthesis - the real gate |
+| Round 1 external review echoes self-review | Self-review was shared before initial external review | Keep Round 1 reviews independent - share synthesis only in later rounds |
 
 ---
 
@@ -570,6 +614,9 @@ Create `review-log.md` and append per round.
 **Consensus:**
 - ...
 
+**Disagreements:**
+- ...
+
 **Actions:**
 - [ ] ...
 
@@ -582,6 +629,15 @@ Create `review-log.md` and append per round.
 - Ready to close? [yes/no]
 
 **Mediator Approval:** pending
+
+---
+
+## Final Synthesis
+- Decision: ...
+- Risks accepted: ...
+- Next steps: ...
+
+**Attestation:** I confirm this log reflects genuine review work, not template filling. - [NAME]
 ```
 
 ---
@@ -699,6 +755,8 @@ Thread ID: [from mcp__codex__codex response]
 - Decision: ...
 - Risks accepted: ...
 - Next steps: ...
+
+**Attestation:** I confirm this log reflects genuine review work, not template filling. - [NAME]
 ```
 
 ---
@@ -707,7 +765,7 @@ Thread ID: [from mcp__codex__codex response]
 
 Study these before running a review:
 
-- **skill-crafting review** (threads `019bda94-d0c9-7c23-aae0-d4d933a2547d`, `019bdc86-502b-7ca1-97e9-814eaa7355dd`, `019bdc91-1ea3-71c3-ab8f-bda225806061`) - Multi-round MCP sessions. Demonstrates severity progression H→M→L→clear, mid-flight fixes, dual-review pattern (self-review + external review + reconcile), convergence.
+- **skill-crafting** (`skills/skill-crafting/`) - Co-developed using this skill. Multi-round MCP sessions (threads `019bda94-d0c9-7c23-aae0-d4d933a2547d`, `019bdc86-502b-7ca1-97e9-814eaa7355dd`, `019bdc91-1ea3-71c3-ab8f-bda225806061`). Demonstrates severity progression H→M→L→clear, mid-flight fixes, dual-review pattern (self-review + external review + reconcile), convergence.
 
 ---
 
