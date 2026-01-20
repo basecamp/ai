@@ -164,6 +164,9 @@ Mediator synthesis template:
 - [ ] Action 1 (owner: implementer)
 - [ ] Action 2
 
+**Decision points:** none this round.
+(or full DECISION POINT template if triggers fired)
+
 **Open Questions:**
 - ...
 
@@ -191,7 +194,7 @@ Before ping-back, implement the agreed changes. Don't review stale artifacts.
 | Accepting limitation | Mediator decides, not implementer |
 | Architectural choice | Affects overall structure |
 
-**Escalation format:**
+**When triggers fire** - STOP, use full template:
 ```
 DECISION POINT: [issue]
 
@@ -208,7 +211,16 @@ Recommendation: [A/B] because [reasoning]
 Your call?
 ```
 
-The mediator's judgment on tradeoffs is the point of this process. Implementers who steamroll through design decisions defeat the purpose.
+Wait for explicit approval before proceeding. Log: `Approved: [decision] by [user]`
+
+**When no triggers fire** - state explicitly in synthesis:
+```
+Decision points: none this round.
+```
+
+This creates an auditable trace that the agent checked. Silence cannot masquerade as compliance.
+
+**Discretion expected.** The trigger list is intentionally tight. Don't escalate every minor choice - that defeats the purpose too. Escalate design tradeoffs that shape the outcome.
 
 ### Step D: Ping-back
 Send targeted follow-ups only. Ask for deltas, not repeats.
@@ -268,6 +280,7 @@ Choose the checks based on orchestration mode.
 | 4 | H/M/L findings captured | `grep -qE "^- [HML]:|High:|Medium:|Low:" review-log.md` | Exit 0 |
 | 5 | Gate Status per round | `grep -c "^\*\*Gate Status:" review-log.md` | Count = rounds |
 | 6 | Changes logged (if round > 1) | `grep -c "^### Changes" review-log.md` | Count = rounds - 1 |
+| 7 | Decision points addressed | `grep -qE "Decision points:|DECISION POINT:" review-log.md` | Exit 0 |
 
 ```bash
 # Quick check script
@@ -288,6 +301,9 @@ grep -c "^\*\*Gate Status:" review-log.md || echo "0"
 
 echo "6) Changes logged:"
 grep -c "^### Changes" review-log.md || echo "0"
+
+echo "7) Decision points addressed:"
+grep -qE "Decision points:|DECISION POINT:" review-log.md && echo "PASS" || echo "FAIL"
 ```
 
 ### MCP session checks (`review-session.md`)
@@ -300,7 +316,8 @@ grep -c "^### Changes" review-log.md || echo "0"
 | 4 | Rounds have gate status | `grep -c "^\*\*Gate Status:" review-session.md` | Count = rounds |
 | 5 | H/M/L findings captured | `grep -qE "^- [HML]:" review-session.md` | Exit 0 |
 | 6 | Changes logged (if round > 1) | `grep -c "^### Changes" review-session.md` | Count = rounds - 1 |
-| 7 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
+| 7 | Decision points addressed | `grep -qE "Decision points:|DECISION POINT:" review-session.md` | Exit 0 |
+| 8 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
 
 ```bash
 # Quick check script (MCP)
@@ -322,7 +339,10 @@ grep -qE "^- [HML]:" review-session.md && echo "PASS" || echo "FAIL"
 echo "6) Changes logged:"
 grep -c "^### Changes" review-session.md || echo "0"
 
-echo "7) Final synthesis:"
+echo "7) Decision points addressed:"
+grep -qE "Decision points:|DECISION POINT:" review-session.md && echo "PASS" || echo "FAIL"
+
+echo "8) Final synthesis:"
 grep -q "^## Final Synthesis" review-session.md && echo "PASS" || echo "FAIL"
 ```
 
@@ -442,6 +462,9 @@ Thread ID: [from mcp__codex__codex response]
 **Actions:**
 - [ ] ...
 
+**Decision points:** none this round.
+(or full DECISION POINT template if triggers fired, with "Approved: [decision] by [user]")
+
 **Open Questions:**
 - ...
 
@@ -472,6 +495,9 @@ Thread ID: [from mcp__codex__codex response]
 - ...
 
 **Actions:**
+- [ ] ...
+
+**Decision points:** none this round.
 - [ ] ...
 
 **Open Questions:**

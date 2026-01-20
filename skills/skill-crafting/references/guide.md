@@ -104,7 +104,7 @@ STOP and involve the human when you encounter:
 | **Accepting limitations** | Documenting a gap rather than fixing it |
 | **Architectural choice** | Solution affects overall structure |
 
-**Format for escalation:**
+**When triggers fire** - STOP, use full template:
 ```
 DECISION POINT: [issue]
 
@@ -121,7 +121,16 @@ Recommendation: [A/B] because [reasoning]
 Your call?
 ```
 
-Don't steamroll through design decisions. The human's judgment on tradeoffs is the point.
+Wait for explicit approval. Log: `Approved: [decision] by [user]`
+
+**When no triggers fire** - state explicitly:
+```
+Decision points: none this round.
+```
+
+This creates an auditable trace. Silence cannot masquerade as compliance.
+
+**Discretion expected.** Escalate design tradeoffs that shape the outcome, not every minor choice.
 
 ### Draft eval checks
 Eval checks should be runnable where possible:
