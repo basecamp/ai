@@ -299,6 +299,7 @@ Choose the checks based on orchestration mode.
 | 5 | Gate Status per round | `grep -c "^\*\*Gate Status:" review-log.md` | Count = rounds |
 | 6 | Changes logged (if round > 1) | `grep -c "^### Changes" review-log.md` | Count = rounds - 1 |
 | 7 | Decision points addressed | `grep -qE "Decision points:|DECISION POINT:" review-log.md` | Exit 0 |
+| 8 | Approvals logged (if decisions) | See script below | Exit 0 |
 
 ```bash
 # Quick check script
@@ -322,6 +323,14 @@ grep -c "^### Changes" review-log.md || echo "0"
 
 echo "7) Decision points addressed:"
 grep -qE "Decision points:|DECISION POINT:" review-log.md && echo "PASS" || echo "FAIL"
+
+echo "8) Approvals logged (if decisions):"
+# Check if any decision point is NOT "none this round"
+if grep -E "Decision points:|DECISION POINT:" review-log.md | grep -qv "none this round"; then
+  grep -q "Approved:" review-log.md && echo "PASS" || echo "FAIL (decision without approval)"
+else
+  echo "PASS (no decisions)"
+fi
 ```
 
 ### MCP session checks (`review-session.md`)
@@ -335,7 +344,8 @@ grep -qE "Decision points:|DECISION POINT:" review-log.md && echo "PASS" || echo
 | 5 | H/M/L findings captured | `grep -qE "^- [HML]:" review-session.md` | Exit 0 |
 | 6 | Changes logged (if round > 1) | `grep -c "^### Changes" review-session.md` | Count = rounds - 1 |
 | 7 | Decision points addressed | `grep -qE "Decision points:|DECISION POINT:" review-session.md` | Exit 0 |
-| 8 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
+| 8 | Approvals logged (if decisions) | See script below | Exit 0 |
+| 9 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
 
 ```bash
 # Quick check script (MCP)
@@ -360,7 +370,15 @@ grep -c "^### Changes" review-session.md || echo "0"
 echo "7) Decision points addressed:"
 grep -qE "Decision points:|DECISION POINT:" review-session.md && echo "PASS" || echo "FAIL"
 
-echo "8) Final synthesis:"
+echo "8) Approvals logged (if decisions):"
+# Check if any decision point is NOT "none this round"
+if grep -E "Decision points:|DECISION POINT:" review-session.md | grep -qv "none this round"; then
+  grep -q "Approved:" review-session.md && echo "PASS" || echo "FAIL (decision without approval)"
+else
+  echo "PASS (no decisions)"
+fi
+
+echo "9) Final synthesis:"
 grep -q "^## Final Synthesis" review-session.md && echo "PASS" || echo "FAIL"
 ```
 
@@ -418,6 +436,9 @@ Create `review-log.md` and append per round.
 **Actions:**
 - [ ] ...
 
+**Decision points:** none this round.
+(or DECISION POINT template + "Approved: [decision] by [user]")
+
 **Open Questions:**
 - ...
 
@@ -437,7 +458,19 @@ Create `review-log.md` and append per round.
 [Paste delta-only response with H/M/L labels]
 
 ### Round 2 Synthesis
-...
+
+**Consensus:**
+- ...
+
+**Actions:**
+- [ ] ...
+
+**Decision points:** none this round.
+
+**Gate Status:**
+- New high-severity items? [yes/no]
+- All actions addressed? [yes/no]
+- Ready to close? [yes/no]
 ```
 
 ---
@@ -516,7 +549,6 @@ Thread ID: [from mcp__codex__codex response]
 - [ ] ...
 
 **Decision points:** none this round.
-- [ ] ...
 
 **Open Questions:**
 - ...
