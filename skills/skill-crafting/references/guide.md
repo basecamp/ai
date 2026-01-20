@@ -110,7 +110,7 @@ STOP and involve the human when you encounter:
 ```
 AskUserQuestion({
   questions: [{
-    question: "[Issue requiring decision]?",
+    question: "[Issue]? Stake: [what gets worse if wrong]",
     header: "Design",
     options: [
       { label: "Option A (Recommended)", description: "[approach] - Pro: X, Con: Y" },
@@ -124,6 +124,7 @@ AskUserQuestion({
 **Option 2: Text template** (portable fallback)
 ```
 DECISION POINT: [issue]
+Stake: [what gets worse if we choose wrong]
 
 Option A: [approach]
 - Pro: ...
