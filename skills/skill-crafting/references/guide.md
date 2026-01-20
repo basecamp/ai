@@ -268,28 +268,26 @@ triggers:                  # Activation phrases
 Study these before starting a new skill:
 
 - **llms-txt** (`skills/llms-txt/`) - Demonstrates eval checks, failure modes, templates.
-
-**In progress:**
-- **ruthless-reviewer** (`skills/ruthless-reviewer/`) - Target 1, being co-developed with this skill.
+- **ruthless-reviewer** (`skills/ruthless-reviewer/`) - Co-developed using this skill. 7-round MCP review session.
 
 ---
 
 ## Recursive Validation
 
-This skill should improve itself.
+This skill should improve itself. If it can't, it doesn't work.
 
-The skill-crafting skill was bootstrapped by:
-- Reflecting on what made llms-txt effective (informing exemplar)
-- Drafting v0 based on those learnings
-- Using ruthless-reviewer to identify gaps
-- Iterating until the skill meets its own bar
+**Process:**
+1. Reflected on what made llms-txt effective (informing exemplar)
+2. Drafted v0 based on those learnings
+3. Using ruthless-reviewer to identify gaps
+4. Iterating until maturity signals met
 
-Current status:
-- v0: Initial draft
-- Target 1: ruthless-reviewer skill (in progress)
-- [Target 2 pending]
+**Current status:** Mature (Target 1 complete)
+- Target 1: ruthless-reviewer skill ✓
+- Review rounds: 7 (via Codex MCP)
+- Final round: Zero H/M issues
 
-If this skill can't improve itself, it doesn't work.
+**Maturity gate:** Zero open H/M issues AND no new H/M issues across 2 consecutive review rounds. ✓
 
 ---
 
@@ -297,22 +295,34 @@ If this skill can't improve itself, it doesn't work.
 
 This skill must pass its own criteria.
 
-| # | Check | Command | Pass |
-|---|-------|---------|------|
-| 1 | Has SKILL.md with frontmatter | `head -1 SKILL.md \| grep -q "^---"` | Exit 0 |
-| 2 | Has guide.md | `test -f references/guide.md` | Exit 0 |
-| 3 | Guide has failure modes table | `grep -q "## Failure Modes" references/guide.md` | Exit 0 |
-| 4 | Guide has eval checks | `grep -q "## Self-Eval Checks\|## Eval Checks" references/guide.md` | Exit 0 |
-| 5 | Has exemplar reference | `grep -q "## Exemplar" references/guide.md` | Exit 0 |
+**Note:** These are smoke tests verifying structure + content. Passing ≠ ready. Use ruthless-reviewer for validation.
+
+| # | Check | Command | Pass | If fail |
+|---|-------|---------|------|---------|
+| 1 | Has frontmatter with name | `head -1 SKILL.md \| grep -q "^---" && head -15 SKILL.md \| grep -q "^name:"` | Exit 0 | Add --- and name: |
+| 2 | Has guide.md | `test -f references/guide.md` | Exit 0 | Create references/guide.md |
+| 3 | Failure modes has table | `sed '/^```/,/^```/d' references/guide.md \| grep -A5 "^## Failure Modes" \| grep -q "^|"` | Exit 0 | Add table to Failure Modes |
+| 4 | Eval checks has table | `sed '/^```/,/^```/d' references/guide.md \| grep -EA10 "^## (Self-Eval|Eval) Checks" \| grep -q "^|"` | Exit 0 | Add table to Eval Checks |
+| 5 | Exemplars has real entries | `sed '/^```/,/^```/d' references/guide.md \| grep -A10 "^## Exemplars" \| grep -qE "^- .*(skills/\|http)"` | Exit 0 | Add exemplar with path/link |
 
 ```bash
 # Run from skill directory
 cd skills/skill-crafting
-echo "1) SKILL.md frontmatter:" && head -1 SKILL.md | grep -q "^---" && echo "PASS" || echo "FAIL"
-echo "2) guide.md exists:" && test -f references/guide.md && echo "PASS" || echo "FAIL"
-echo "3) Failure modes:" && grep -q "## Failure Modes" references/guide.md && echo "PASS" || echo "FAIL"
-echo "4) Eval checks:" && grep -qE "## (Self-Eval|Eval) Checks" references/guide.md && echo "PASS" || echo "FAIL"
-echo "5) Exemplar ref:" && grep -q "## Exemplar" references/guide.md && echo "PASS" || echo "FAIL"
+
+echo "1) Has frontmatter with name:"
+head -1 SKILL.md | grep -q "^---" && head -15 SKILL.md | grep -q "^name:" && echo "PASS" || echo "FAIL"
+
+echo "2) guide.md exists:"
+test -f references/guide.md && echo "PASS" || echo "FAIL"
+
+echo "3) Failure modes has table:"
+sed '/^```/,/^```/d' references/guide.md | grep -A5 "^## Failure Modes" | grep -q "^|" && echo "PASS" || echo "FAIL"
+
+echo "4) Eval checks has table:"
+sed '/^```/,/^```/d' references/guide.md | grep -EA10 "^## (Self-Eval|Eval) Checks" | grep -q "^|" && echo "PASS" || echo "FAIL"
+
+echo "5) Exemplars has real entries:"
+sed '/^```/,/^```/d' references/guide.md | grep -A10 "^## Exemplars" | grep -qE "^- .*(skills/|http)" && echo "PASS" || echo "FAIL"
 ```
 
 **Current status:**
