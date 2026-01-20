@@ -295,11 +295,12 @@ Choose the checks based on orchestration mode.
 | 1 | Log exists | `test -f review-log.md` | File exists |
 | 2 | Each round has synthesis | `grep -c "^### Round .* Synthesis" review-log.md` | Count ≥ 1 |
 | 3 | Synthesis has required sections | `grep -E "^\*\*(Consensus|Actions|Gate Status):" review-log.md` | All 3 present per round |
-| 4 | H/M/L findings captured | `grep -qE "^- [HML]:|High:|Medium:|Low:" review-log.md` | Exit 0 |
+| 4 | H/M/L findings captured | `grep -qE "(^|[[:space:]-])([HML]:|High:|Medium:|Low:)" review-log.md` | Exit 0 |
 | 5 | Gate Status per round | `grep -c "^\*\*Gate Status:" review-log.md` | Count = rounds |
 | 6 | Changes logged (if round > 1) | `grep -c "^### Changes" review-log.md` | Count = rounds - 1 |
 | 7 | Decision points addressed | `grep -qE "Decision points:|DECISION POINT:" review-log.md` | Exit 0 |
 | 8 | Approvals logged (if decisions) | See script below | Exit 0 |
+| 9 | Decision points per round | See script below | Rounds = traces |
 
 ```bash
 # Quick check script
@@ -313,7 +314,7 @@ echo "3) Required sections:"
 grep -E "^\*\*(Consensus|Actions|Gate Status):" review-log.md | wc -l
 
 echo "4) H/M/L findings:"
-grep -qE "^- [HML]:|High:|Medium:|Low:" review-log.md && echo "PASS" || echo "FAIL"
+grep -qE "(^|[[:space:]-])([HML]:|High:|Medium:|Low:)" review-log.md && echo "PASS" || echo "FAIL"
 
 echo "5) Gate Status per round:"
 grep -c "^\*\*Gate Status:" review-log.md || echo "0"
@@ -331,6 +332,12 @@ if grep -E "Decision points:|DECISION POINT:" review-log.md | grep -qv "none thi
 else
   echo "PASS (no decisions)"
 fi
+
+echo "9) Decision points per round:"
+rounds=$(grep -c "^## Round" review-log.md || echo 0)
+# Count either "Decision points:" (no triggers) or "DECISION POINT:" (triggers fired)
+dpoints=$(grep -cE "Decision points:|DECISION POINT:" review-log.md || echo 0)
+[ "$rounds" -eq "$dpoints" ] && echo "PASS ($rounds rounds, $dpoints traces)" || echo "WARN: $rounds rounds, $dpoints decision point traces"
 ```
 
 ### MCP session checks (`review-session.md`)
@@ -341,11 +348,12 @@ fi
 | 2 | Thread ID recorded | `grep -q "^Thread ID:" review-session.md` | Exit 0 |
 | 3 | At least one round | `grep -c "^## Round" review-session.md` | Count ≥ 1 |
 | 4 | Rounds have gate status | `grep -c "^\*\*Gate Status:" review-session.md` | Count = rounds |
-| 5 | H/M/L findings captured | `grep -qE "^- [HML]:" review-session.md` | Exit 0 |
+| 5 | H/M/L findings captured | `grep -qE "(^|[[:space:]-])([HML]:|High:|Medium:|Low:)" review-session.md` | Exit 0 |
 | 6 | Changes logged (if round > 1) | `grep -c "^### Changes" review-session.md` | Count = rounds - 1 |
 | 7 | Decision points addressed | `grep -qE "Decision points:|DECISION POINT:" review-session.md` | Exit 0 |
 | 8 | Approvals logged (if decisions) | See script below | Exit 0 |
-| 9 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
+| 9 | Decision points per round | See script below | Rounds = traces |
+| 10 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
 
 ```bash
 # Quick check script (MCP)
@@ -362,7 +370,7 @@ echo "4) Gate status per round:"
 grep -c "^\*\*Gate Status:" review-session.md || echo "0"
 
 echo "5) H/M/L findings:"
-grep -qE "^- [HML]:" review-session.md && echo "PASS" || echo "FAIL"
+grep -qE "(^|[[:space:]-])([HML]:|High:|Medium:|Low:)" review-session.md && echo "PASS" || echo "FAIL"
 
 echo "6) Changes logged:"
 grep -c "^### Changes" review-session.md || echo "0"
@@ -378,7 +386,13 @@ else
   echo "PASS (no decisions)"
 fi
 
-echo "9) Final synthesis:"
+echo "9) Decision points per round:"
+rounds=$(grep -c "^## Round" review-session.md || echo 0)
+# Count either "Decision points:" (no triggers) or "DECISION POINT:" (triggers fired)
+dpoints=$(grep -cE "Decision points:|DECISION POINT:" review-session.md || echo 0)
+[ "$rounds" -eq "$dpoints" ] && echo "PASS ($rounds rounds, $dpoints traces)" || echo "WARN: $rounds rounds, $dpoints decision point traces"
+
+echo "10) Final synthesis:"
 grep -q "^## Final Synthesis" review-session.md && echo "PASS" || echo "FAIL"
 ```
 
