@@ -21,7 +21,9 @@ _None yet._
 
 Skills designed for 37signals internal use. Open source but not intended for external adoption—they reference internal paths, conventions, and context.
 
-_None yet._
+| Skill | Description |
+|-------|-------------|
+| [llms-txt](skills/llms-txt/) | Generate agent-accessible llms.txt tailored for 37signals sites |
 
 ## Updating
 
