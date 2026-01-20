@@ -337,15 +337,17 @@ This skill should improve itself. If it can't, it doesn't work.
 **Process:**
 1. Reflected on what made llms-txt effective (informing exemplar)
 2. Drafted v0 based on those learnings
-3. Using ruthless-reviewer to identify gaps
-4. Iterating until maturity signals met
+3. Using ruthless-reviewer with dual-review pattern (self-review + external Codex review + reconcile)
+4. Presenting decision points to human mediator via AskUserQuestion
+5. Iterating until maturity signals met
 
 **Current status:** Mature (Target 1 complete)
 - Target 1: ruthless-reviewer skill ✓
-- Review rounds: 7 (via Codex MCP)
-- Final round: Zero H/M issues
+- Review rounds: 10 (self-review + Codex MCP with dual-review pattern)
+- Convergence: 2 consecutive rounds with no H/M issues (rounds 9-10)
+- Thread ID: `019bdc91-1ea3-71c3-ab8f-bda225806061`
 
-**Maturity gate:** Zero open H/M issues AND no new H/M issues across 2 consecutive review rounds. ✓
+**Maturity gate:** Zero open H/M issues AND no new H/M issues across 2 consecutive review rounds with proper dual-review process. ✓
 
 ---
 
@@ -412,6 +414,7 @@ sed '/^```/,/^```/d' references/guide.md | grep -A10 "^## Exemplars" | grep -qE 
 2. Create `skills/NAME/references/guide.md` with rough process
 3. Pick a real target
 4. Co-develop: update skill as you work the target
-5. Graduate output to exemplar
-6. Spin flywheel with Target 2
-7. Continue until mature
+5. **STOP at design tradeoffs** - use escalation triggers, present decisions to human
+6. Graduate output to exemplar
+7. Spin flywheel with Target 2
+8. Continue until mature

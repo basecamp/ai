@@ -28,11 +28,11 @@ Reviewers label findings with H/M/L. The mediator uses these to enforce gates.
 
 ## Roles
 
-- **Implementer**: the agent doing the work.
-- **Mediator**: you (the human). You set scope, reconcile disagreements, and decide what changes.
-- **Reviewer(s)**: independent reviewers with distinct lenses.
+- **Implementer**: the agent doing the work. Also does self-review (see Dual-Review Pattern). Proposes synthesis artifacts but does not approve design decisions.
+- **Mediator**: you (the human). You set scope, approve synthesis, reconcile disagreements, and decide what changes. All design decisions require your explicit approval.
+- **Reviewer(s)**: independent external reviewers with distinct lenses.
 
-**Critical:** The implementer must STOP and escalate to the mediator - not proceed autonomously - when design decisions arise.
+**Critical:** The implementer must STOP and escalate to the mediator - not proceed autonomously - when design decisions arise. The implementer writes synthesis proposals; the mediator owns final decisions.
 
 Reviewer lenses you can assign:
 - Ruthless reviewer (correctness and risks)
@@ -58,9 +58,9 @@ The common case. One implementer, one ruthless reviewer. Use when:
 - Limited time
 
 In two-agent mode:
-- Skip "Disagreements" section (no one to disagree with)
-- Convergence = reviewer has no new high-severity items
-- The reviewer IS the ruthless reviewer
+- "Disagreements" captures self-review vs external review conflicts (not skipped - dual-review still produces potential disagreements)
+- Convergence = two consecutive rounds with no open H issues, no new deltas, AND all M issues fixed or explicitly accepted
+- The external reviewer IS the ruthless reviewer
 
 ---
 
@@ -106,12 +106,32 @@ Pick one:
 
 ---
 
+## The Dual-Review Pattern (Default)
+
+The implementer is not just a fixer - they are also a reviewer. Every round follows this pattern:
+
+1. **Implementer self-reviews** - Before external review, the implementer examines their own work with fresh eyes. Produce H/M/L findings just like an external reviewer would.
+2. **External reviewer(s) review independently** - Without seeing the self-review findings.
+3. **Reconcile** - Compare both sets of findings. Where do they agree? Where do they disagree? Steelman both perspectives.
+4. **Present decision points** - When reconciliation surfaces design tradeoffs, present them to the mediator via AskUserQuestion or text template.
+5. **Implement** - Address agreed actions.
+
+This pattern prevents "outsourcing" review to external agents. The implementer must engage critically with their own work first.
+
+---
+
 ## Phase 2: Round Loop
 
-Each round has four steps: Review, Mediate, Implement, Ping-back.
+Each round has five steps: Self-Review, External Review, Reconcile, Implement, Ping-back.
 
-### Step A: Review
-Send each reviewer a brief with constraints and required output structure.
+### Step 0: Self-Review
+Before sending to external reviewers, the implementer reviews their own work:
+- Examine the artifact with a critical lens
+- Produce findings with H/M/L severity labels
+- Be genuinely critical - don't softball yourself
+
+### Step A: External Review
+Send each external reviewer a brief with constraints and required output structure.
 
 Reviewer brief template:
 ```
@@ -141,23 +161,23 @@ mcp__codex__codex(prompt="You are the ruthless reviewer... [artifact path] [scop
 
 Round N (reuse thread):
 ```
-mcp__codex__codex-reply(threadId="...", prompt="Here is the synthesis + changes. Provide only deltas/new high severity items.")
+mcp__codex__codex-reply(threadId="...", prompt="Here is the synthesis + changes. Provide deltas only (H/M/L labeled) - no repeats from previous rounds.")
 ```
 
 Record `threadId` and round summaries in `review-session.md`.
 
-### Step B: Mediate
-Synthesize all responses into a single decision artifact. This is where convergence happens.
+### Step B: Reconcile and Propose Synthesis
+The implementer synthesizes self-review + external review into a single decision artifact. The mediator (human) reviews and approves before proceeding.
 
-Mediator synthesis template:
+Synthesis proposal template (implementer writes, mediator approves):
 ```
 ### Round N Synthesis
 
 **Consensus:**
 - ...
 
-**Disagreements:** (skip in two-agent mode)
-- Reviewer A vs B: [topic]
+**Disagreements:** (self-review vs external, or between external reviewers)
+- [Reviewer/Source] vs [Reviewer/Source]: [topic]
   - Decision: [what we do and why]
 
 **Actions:**
@@ -171,9 +191,12 @@ Mediator synthesis template:
 - ...
 
 **Gate Status:**
-- New high-severity items? [yes/no]
+- Open high-severity items? [yes/no - must be no to close]
+- Open medium items accepted? [yes/no/N/A]
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
+
+**Mediator Approval:** [pending/approved by NAME]
 ```
 
 ### Step C: Implement
@@ -248,8 +271,8 @@ Ping-back prompt:
 Here is the synthesis. Respond with:
 - Any critical misses (H/M/L labeled)
 - Any disagreement with the decision
-- Any new high-severity issue only
-No repeats. Use H/M/L severity labels.
+- Any new issues (H/M/L labeled) - prioritize H/M, but don't suppress M issues
+No repeats from previous rounds. Use H/M/L severity labels.
 ```
 
 **Round gate:**
@@ -262,9 +285,9 @@ No repeats. Use H/M/L severity labels.
 ## Phase 3: Convergence Gate
 
 Stop when the loop converges. Use one of these stop conditions:
-- Two consecutive rounds with no new high-severity items
-- All actions addressed and reviewers have no new deltas
-- Time budget reached and risk is explicitly accepted
+- Two consecutive rounds with no open high-severity items (not just "no new" - all H issues must be resolved) AND all Medium issues either fixed or explicitly accepted by mediator
+- No open H issues, all actions addressed, reviewers have no new deltas, AND all Medium issues either fixed or explicitly accepted
+- Time budget reached and risk is explicitly accepted by the mediator (not self-approved by implementer) - must document which H/M issues remain and why
 
 **Close-out artifact:** A final synthesis with decisions and next steps.
 
@@ -279,6 +302,12 @@ Drop a reviewer when:
 - They lower the quality bar (overly lenient)
 
 If dropped, document why in the log.
+
+**Important:** In two-agent mode, if you drop the only external reviewer, you must either:
+1. Replace them with another external reviewer, OR
+2. Escalate to mediator to decide how to proceed
+
+Never continue with self-review only - the External Review per round eval check will fail.
 
 ---
 
@@ -301,6 +330,10 @@ Choose the checks based on orchestration mode.
 | 7 | Decision points addressed | `grep -qE "Decision points:|DECISION POINT:" review-log.md` | Exit 0 |
 | 8 | Approvals logged (if decisions) | See script below | Exit 0 |
 | 9 | Decision points per round | See script below | Rounds = traces |
+| 10 | Self-Review per round | `grep -c "^### Self-Review" review-log.md` | Count = rounds |
+| 11 | External Review per round | `grep -c "^### External Review" review-log.md` | Count = rounds |
+| 12 | Reconciliation per round | `grep -c "^### Reconciliation" review-log.md` | Count = rounds |
+| 13 | Mediator approval per round | `grep -c "^\*\*Mediator Approval:\*\*.*approved" review-log.md` | Count = rounds |
 
 ```bash
 # Quick check script
@@ -338,6 +371,22 @@ rounds=$(grep -c "^## Round" review-log.md || echo 0)
 # Count either "Decision points:" (no triggers) or "DECISION POINT:" (triggers fired)
 dpoints=$(grep -cE "Decision points:|DECISION POINT:" review-log.md || echo 0)
 [ "$rounds" -eq "$dpoints" ] && echo "PASS ($rounds rounds, $dpoints traces)" || echo "WARN: $rounds rounds, $dpoints decision point traces"
+
+echo "10) Self-Review per round:"
+selfreviews=$(grep -c "^### Self-Review" review-log.md || echo 0)
+[ "$rounds" -eq "$selfreviews" ] && echo "PASS ($selfreviews self-reviews)" || echo "WARN: $rounds rounds, $selfreviews self-reviews"
+
+echo "11) External Review per round:"
+extreviews=$(grep -c "^### External Review" review-log.md || echo 0)
+[ "$rounds" -eq "$extreviews" ] && echo "PASS ($extreviews external reviews)" || echo "WARN: $rounds rounds, $extreviews external reviews"
+
+echo "12) Reconciliation per round:"
+reconciliations=$(grep -c "^### Reconciliation" review-log.md || echo 0)
+[ "$rounds" -eq "$reconciliations" ] && echo "PASS ($reconciliations reconciliations)" || echo "WARN: $rounds rounds, $reconciliations reconciliations"
+
+echo "13) Mediator approval per round:"
+approvals=$(grep -c "^\*\*Mediator Approval:\*\*.*approved" review-log.md || echo 0)
+[ "$rounds" -eq "$approvals" ] && echo "PASS ($approvals approvals)" || echo "WARN: $rounds rounds, $approvals mediator approvals"
 ```
 
 ### MCP session checks (`review-session.md`)
@@ -353,7 +402,11 @@ dpoints=$(grep -cE "Decision points:|DECISION POINT:" review-log.md || echo 0)
 | 7 | Decision points addressed | `grep -qE "Decision points:|DECISION POINT:" review-session.md` | Exit 0 |
 | 8 | Approvals logged (if decisions) | See script below | Exit 0 |
 | 9 | Decision points per round | See script below | Rounds = traces |
-| 10 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
+| 10 | Self-Review per round | `grep -c "^### Self-Review" review-session.md` | Count = rounds |
+| 11 | External Review per round | `grep -c "^### External Review" review-session.md` | Count = rounds |
+| 12 | Reconciliation per round | `grep -c "^### Reconciliation" review-session.md` | Count = rounds |
+| 13 | Mediator approval per round | `grep -c "^\*\*Mediator Approval:\*\*.*approved" review-session.md` | Count = rounds |
+| 14 | Final synthesis exists | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
 
 ```bash
 # Quick check script (MCP)
@@ -392,7 +445,23 @@ rounds=$(grep -c "^## Round" review-session.md || echo 0)
 dpoints=$(grep -cE "Decision points:|DECISION POINT:" review-session.md || echo 0)
 [ "$rounds" -eq "$dpoints" ] && echo "PASS ($rounds rounds, $dpoints traces)" || echo "WARN: $rounds rounds, $dpoints decision point traces"
 
-echo "10) Final synthesis:"
+echo "10) Self-Review per round:"
+selfreviews=$(grep -c "^### Self-Review" review-session.md || echo 0)
+[ "$rounds" -eq "$selfreviews" ] && echo "PASS ($selfreviews self-reviews)" || echo "WARN: $rounds rounds, $selfreviews self-reviews"
+
+echo "11) External Review per round:"
+extreviews=$(grep -c "^### External Review" review-session.md || echo 0)
+[ "$rounds" -eq "$extreviews" ] && echo "PASS ($extreviews external reviews)" || echo "WARN: $rounds rounds, $extreviews external reviews"
+
+echo "12) Reconciliation per round:"
+reconciliations=$(grep -c "^### Reconciliation" review-session.md || echo 0)
+[ "$rounds" -eq "$reconciliations" ] && echo "PASS ($reconciliations reconciliations)" || echo "WARN: $rounds rounds, $reconciliations reconciliations"
+
+echo "13) Mediator approval per round:"
+approvals=$(grep -c "^\*\*Mediator Approval:\*\*.*approved" review-session.md || echo 0)
+[ "$rounds" -eq "$approvals" ] && echo "PASS ($approvals approvals)" || echo "WARN: $rounds rounds, $approvals mediator approvals"
+
+echo "14) Final synthesis:"
 grep -q "^## Final Synthesis" review-session.md && echo "PASS" || echo "FAIL"
 ```
 
@@ -436,15 +505,26 @@ Create `review-log.md` and append per round.
 
 ## Round 1
 
-### Reviewer A
+### Self-Review (Implementer)
+[Implementer's own findings with H/M/L severity labels]
+- H: ...
+- M: ...
+- L: ...
+
+### External Review (Reviewer A)
 [Paste response with H/M/L severity labels]
+
+### Reconciliation
+| Issue | Self-Review | External | Agreement |
+|-------|-------------|----------|-----------|
+| ... | Found/Missed | Found/Missed | Agree/Disagree |
 
 ### Round 1 Synthesis
 
 **Consensus:**
 - ...
 
-**Disagreements:** (skip in two-agent mode)
+**Disagreements:**
 - ...
 
 **Actions:**
@@ -457,9 +537,12 @@ Create `review-log.md` and append per round.
 - ...
 
 **Gate Status:**
-- New high-severity items? [yes/no]
+- Open high-severity items? [yes/no - must be no to close]
+- Open medium items accepted? [yes/no/N/A]
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
+
+**Mediator Approval:** [pending/approved by NAME]
 
 ---
 
@@ -468,8 +551,15 @@ Create `review-log.md` and append per round.
 ### Changes (Round 1)
 - [What was implemented from Round 1 actions]
 
-### Reviewer A
+### Self-Review (Implementer)
+[Implementer's own review of changes with H/M/L]
+
+### External Review (Reviewer A)
 [Paste delta-only response with H/M/L labels]
+
+### Reconciliation
+| Issue | Self-Review | External | Agreement |
+|-------|-------------|----------|-----------|
 
 ### Round 2 Synthesis
 
@@ -482,7 +572,8 @@ Create `review-log.md` and append per round.
 **Decision points:** none this round.
 
 **Gate Status:**
-- New high-severity items? [yes/no]
+- Open high-severity items? [yes/no - must be no to close]
+- Open medium items accepted? [yes/no/N/A]
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
 ```
@@ -510,18 +601,29 @@ Thread ID: [from mcp__codex__codex response]
 
 ## Round 1
 
-### Reviewer Findings
+### Self-Review (Implementer)
+[Implementer's own findings with H/M/L severity labels]
+- H: ...
+- M: ...
+- L: ...
+
+### External Review (Codex)
 [Paste or summarize Codex response - must include H/M/L labels]
 - H: ...
 - M: ...
 - L: ...
+
+### Reconciliation
+| Issue | Self-Review | Codex | Agreement |
+|-------|-------------|-------|-----------|
+| ... | Found/Missed | Found/Missed | Agree/Disagree |
 
 ### Round 1 Synthesis
 
 **Consensus:**
 - ...
 
-**Disagreements:** (skip in two-agent mode)
+**Disagreements:**
 - ...
 
 **Actions:**
@@ -534,9 +636,12 @@ Thread ID: [from mcp__codex__codex response]
 - ...
 
 **Gate Status:**
-- New high-severity items? [yes/no]
+- Open high-severity items? [yes/no - must be no to close]
+- Open medium items accepted? [yes/no/N/A]
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
+
+**Mediator Approval:** [pending/approved by NAME]
 
 ---
 
@@ -545,18 +650,25 @@ Thread ID: [from mcp__codex__codex response]
 ### Changes (Round 1)
 - [What was implemented]
 
-### Reviewer Findings
+### Self-Review (Implementer)
+[Implementer's own review of changes with H/M/L]
+
+### External Review (Codex)
 [Paste or summarize mcp__codex__codex-reply response with H/M/L labels]
 - H: ...
 - M: ...
 - L: ...
+
+### Reconciliation
+| Issue | Self-Review | Codex | Agreement |
+|-------|-------------|-------|-----------|
 
 ### Round 2 Synthesis
 
 **Consensus:**
 - ...
 
-**Disagreements:** (skip in two-agent mode)
+**Disagreements:**
 - ...
 
 **Actions:**
@@ -568,7 +680,8 @@ Thread ID: [from mcp__codex__codex response]
 - ...
 
 **Gate Status:**
-- New high-severity items? [yes/no]
+- Open high-severity items? [yes/no - must be no to close]
+- Open medium items accepted? [yes/no/N/A]
 - All actions addressed? [yes/no]
 - Ready to close? [yes/no]
 
@@ -586,10 +699,7 @@ Thread ID: [from mcp__codex__codex response]
 
 Study these before running a review:
 
-- **skill-crafting review** (thread `019bda94-d0c9-7c23-aae0-d4d933a2547d`) - 4-round MCP session. Demonstrates severity progression H→M→L→clear, mid-flight fixes, convergence.
-
-**In progress:**
-- Self-review of this skill (recursive validation)
+- **skill-crafting review** (threads `019bda94-d0c9-7c23-aae0-d4d933a2547d`, `019bdc86-502b-7ca1-97e9-814eaa7355dd`, `019bdc91-1ea3-71c3-ab8f-bda225806061`) - Multi-round MCP sessions. Demonstrates severity progression H→M→L→clear, mid-flight fixes, dual-review pattern (self-review + external review + reconcile), convergence.
 
 ---
 
