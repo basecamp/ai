@@ -62,6 +62,18 @@ In two-agent mode:
 
 ---
 
+## Orchestration
+
+Choose how you run the loop:
+
+### Manual log (copy/paste)
+Use `review-log.md` and paste reviewer responses each round. This is the default and is fully checkable with the eval checks.
+
+### MCP thread (Codex)
+If you have Codex MCP available, you can run the reviewer through a single MCP thread and avoid manual copy/paste. Create `review-session.md` and record the thread ID plus round summaries so the loop is auditable.
+
+---
+
 ## Phase 1: Setup (Gate)
 
 Define the review contract before any review happens.
@@ -76,13 +88,15 @@ Define the review contract before any review happens.
 - **Multi-agent mode**: Pick 2-4 reviewers with different lenses. Ensure at least one is a ruthless reviewer.
 - **Two-agent mode**: One ruthless reviewer. That's it.
 
-### Create a working log
-Create `review-log.md` in the working directory. Use the template below so checks can be run.
+### Create a session record
+Pick one:
+- **Manual log:** Create `review-log.md` in the working directory. Use the template below so checks can be run.
+- **MCP thread:** Create `review-session.md` and record the thread ID. Use the template below.
 
 **Gate to proceed:**
 - Artifact and scope are stated
 - Reviewers and lenses are selected
-- Working log exists
+- `review-log.md` or `review-session.md` exists
 
 ---
 
@@ -110,6 +124,21 @@ OUTPUT FORMAT:
 4) Suggested changes
 5) Confidence (low/medium/high)
 ```
+
+### MCP option: Reviewer thread
+If using Codex MCP, start the reviewer in a single thread and reuse it across rounds:
+
+Round 1 (start new thread):
+```
+mcp__codex__codex(prompt="You are the ruthless reviewer... [artifact path] [scope] [quality bar] [output format]", cwd="...") -> threadId
+```
+
+Round N (reuse thread):
+```
+mcp__codex__codex-reply(threadId="...", prompt="Here is the synthesis + changes. Provide only deltas/new high severity items.")
+```
+
+Record `threadId` and round summaries in `review-session.md`.
 
 ### Step B: Mediate
 Synthesize all responses into a single decision artifact. This is where convergence happens.
@@ -189,7 +218,9 @@ If dropped, document why in the log.
 
 ## Eval Checks
 
-These checks are runnable if you keep the log structure.
+Choose the checks based on orchestration mode.
+
+### Manual log checks (`review-log.md`)
 
 | # | Check | Command | Pass |
 |---|-------|---------|------|
@@ -217,6 +248,30 @@ echo "5) Changes logged:"
 grep -c "^### Changes" review-log.md || echo "0"
 ```
 
+### MCP session checks (`review-session.md`)
+
+| # | Check | Command | Pass |
+|---|-------|---------|------|
+| 1 | Session exists | `test -f review-session.md` | File exists |
+| 2 | Thread ID recorded | `grep -q "^Thread ID:" review-session.md` | Exit 0 |
+| 3 | At least one round summary | `grep -c "^## Round" review-session.md` | Count ≥ 1 |
+| 4 | Final decision recorded | `grep -q "^## Final Synthesis" review-session.md` | Exit 0 |
+
+```bash
+# Quick check script (MCP)
+echo "1) Session exists:"
+test -f review-session.md && echo "PASS" || echo "FAIL"
+
+echo "2) Thread ID:"
+grep -q "^Thread ID:" review-session.md && echo "PASS" || echo "FAIL"
+
+echo "3) Round summaries:"
+grep -c "^## Round" review-session.md || echo "0"
+
+echo "4) Final synthesis:"
+grep -q "^## Final Synthesis" review-session.md && echo "PASS" || echo "FAIL"
+```
+
 If any check fails, fix the log structure before proceeding.
 
 ---
@@ -230,6 +285,7 @@ If any check fails, fix the log structure before proceeding.
 | Low signal feedback | Wrong reviewer lens | Replace or re-brief reviewer |
 | Too many issues, no action | Missing prioritization | Rank by severity and cut scope |
 | Reviewer contradicts themselves | No evidence requirement | Ask for evidence or drop |
+| MCP session lost | Thread ID not recorded | Record in `review-session.md` and restate context |
 
 ---
 
@@ -287,6 +343,57 @@ Create `review-log.md` and append per round.
 
 ### Round 2 Synthesis
 ...
+```
+
+---
+
+## MCP Session Template
+
+Create `review-session.md` if using Codex MCP.
+
+```
+# Review Session
+
+## Artifact
+- Description: ...
+- Scope: ...
+- Quality bar: ...
+
+## Reviewers
+- Reviewer A: [lens] (Codex MCP)
+
+Thread ID: ...
+
+---
+
+## Round 1
+
+### Synthesis
+- High: ...
+- Medium: ...
+- Low: ...
+
+### Actions
+- [ ] ...
+
+---
+
+## Round 2
+
+### Changes
+- ...
+
+### Synthesis
+- High: ...
+- Medium: ...
+- Low: ...
+
+---
+
+## Final Synthesis
+- Decision: ...
+- Risks accepted: ...
+- Next steps: ...
 ```
 
 ---
