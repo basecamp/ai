@@ -7,6 +7,10 @@ triggers:
   - get outside expert input
   - external consultation
   - expert consultation
+  - expert review
+  - outside review
+  - external review
+  - get expert feedback
   - codex sparring
   - cross-agent refinement
   - dual-agent convergence
