@@ -15,7 +15,10 @@ curl -fsSL https://raw.githubusercontent.com/basecamp/ai/main/install.md | claud
 
 General-purpose skills designed for broad use.
 
-_None yet._
+| Skill | Description |
+|-------|-------------|
+| [consult-outside-expert](skills/consult-outside-expert/) | Consult an outside expert (via Codex MCP) to collaboratively refine, stress-test, and converge on excellent outcomes |
+| [skill-crafting](skills/skill-crafting/) | Create and refine agent skills through co-development and eval loops |
 
 ## Internal
 
