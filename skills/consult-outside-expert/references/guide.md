@@ -339,7 +339,7 @@ Choose the checks based on orchestration mode.
 | # | Check | Command | Pass |
 |---|-------|---------|------|
 | 1 | Log exists | `test -f review-log.md` | File exists |
-| 2 | Each round has synthesis | `grep -c "^### Round .* Synthesis" review-log.md` | Count ≥ 1 |
+| 2 | Each round has synthesis | `grep -c "^### Round .* Synthesis" review-log.md` | Count = rounds |
 | 3 | Synthesis has required sections | `grep -E "^\*\*(Consensus|Disagreements|Actions|Gate Status):" review-log.md` | All 4 present per round |
 | 4 | H/M/L findings captured | `grep -qE "(^|[[:space:]-])([HML]:|High:|Medium:|Low:)" review-log.md` | Exit 0 |
 | 5 | Gate Status per round | `grep -c "^\*\*Gate Status:" review-log.md` | Count = rounds |
