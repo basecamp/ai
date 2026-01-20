@@ -326,7 +326,7 @@ triggers:                  # Activation phrases
 Study these before starting a new skill:
 
 - **llms-txt** (`skills/llms-txt/`) - Demonstrates eval checks, failure modes, templates.
-- **ruthless-reviewer** (`skills/ruthless-reviewer/`) - Co-developed using this skill. 10+ round MCP review session with dual-review pattern.
+- **consult-outside-expert** (`skills/consult-outside-expert/`) - Co-developed using this skill. 10+ round MCP session with dual-review pattern.
 
 ---
 
@@ -337,12 +337,12 @@ This skill should improve itself. If it can't, it doesn't work.
 **Process:**
 1. Reflected on what made llms-txt effective (informing exemplar)
 2. Drafted v0 based on those learnings
-3. Using ruthless-reviewer with dual-review pattern (self-review + external Codex review + reconcile)
+3. Using consult-outside-expert with dual-review pattern (self-review + external Codex review + reconcile)
 4. Presenting decision points to human mediator via AskUserQuestion
 5. Iterating until maturity signals met
 
 **Current status:** Mature (Target 1 complete)
-- Target 1: ruthless-reviewer skill ✓
+- Target 1: consult-outside-expert skill ✓
 - Review rounds: 10 (self-review + Codex MCP with dual-review pattern)
 - Convergence: 2 consecutive rounds with no H/M issues (rounds 9-10)
 - Thread ID: `019bdc91-1ea3-71c3-ab8f-bda225806061`
@@ -355,7 +355,7 @@ This skill should improve itself. If it can't, it doesn't work.
 
 This skill must pass its own criteria.
 
-**Note:** These are smoke tests verifying structure + content. Passing ≠ ready. Use ruthless-reviewer for validation.
+**Note:** These are smoke tests verifying structure + content. Passing ≠ ready. Use consult-outside-expert for validation.
 
 | # | Check | Command | Pass | If fail |
 |---|-------|---------|------|---------|

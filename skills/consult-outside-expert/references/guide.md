@@ -1,6 +1,6 @@
-# Ruthless Reviewer Guide
+# Consult Outside Expert Guide
 
-Run a mediated, manual multi-agent review loop by ping-ponging feedback between reviewers and an implementer. The goal is convergence on superior outcomes, not consensus for its own sake.
+Consult an outside expert to collaboratively refine work through iterative back-and-forth. The goal is convergence on excellent outcomes through multiple perspectives, not consensus for its own sake.
 
 ---
 
@@ -8,13 +8,13 @@ Run a mediated, manual multi-agent review loop by ping-ponging feedback between 
 
 The loop is: Review -> Mediate -> Improve -> Repeat (review updated artifact). The mediator enforces quality gates and convergence.
 
-A reviewer is not a judge. A reviewer is a signal generator. The mediator owns synthesis and decisions.
+An expert is not a judge. An expert is a signal generator. The mediator owns synthesis and decisions.
 
 ---
 
 ## Severity Rubric
 
-All reviewers must use this shared scale:
+All experts must use this shared scale:
 
 | Severity | Definition | Gate impact |
 |----------|------------|-------------|
@@ -22,7 +22,7 @@ All reviewers must use this shared scale:
 | **Medium** | Should fix. Quality/maintainability issue but not blocking. | Fix or explicitly accept risk. |
 | **Low** | Nice to have. Polish, style, minor improvements. | Fix if time permits. |
 
-Reviewers label findings with H/M/L. The mediator uses these to enforce gates.
+Experts label findings with H/M/L. The mediator uses these to enforce gates.
 
 ---
 
@@ -30,29 +30,30 @@ Reviewers label findings with H/M/L. The mediator uses these to enforce gates.
 
 - **Implementer**: the agent doing the work. Also does self-review (see Dual-Review Pattern). Proposes synthesis artifacts but does not approve design decisions.
 - **Mediator**: you (the human). You set scope, approve synthesis, reconcile disagreements, and decide what changes. All design decisions require your explicit approval.
-- **Reviewer(s)**: independent external reviewers with distinct lenses.
+- **Expert(s)**: independent external experts with distinct lenses.
 
 **Critical:** The implementer must STOP and escalate to the mediator - not proceed autonomously - when design decisions arise. The implementer writes synthesis proposals; the mediator owns final decisions.
 
-Reviewer lenses you can assign:
-- Ruthless reviewer (correctness and risks)
-- Design/architecture reviewer (structure and tradeoffs)
-- User-impact reviewer (UX, clarity, ergonomics)
-- Test reviewer (coverage, edge cases)
-- Red team reviewer (attack failure modes)
+Expert lenses you can assign:
+- Correctness expert (accuracy, risks, edge cases)
+- Design/architecture expert (structure and tradeoffs)
+- User-impact expert (UX, clarity, ergonomics)
+- Testing expert (coverage, verification)
+- Red team expert (failure modes, adversarial thinking)
+- Domain expert (subject matter depth)
 
 ---
 
 ## Modes
 
-### Multi-agent mode (2-4 reviewers)
+### Multi-agent mode (2-4 experts)
 The full ping-pong with multiple perspectives. Use when:
 - High-stakes artifact
 - Complex tradeoffs
 - Need diverse lenses
 
-### Two-agent mode (implementer + 1 reviewer)
-The common case. One implementer, one ruthless reviewer. Use when:
+### Two-agent mode (implementer + 1 expert)
+The common case. One implementer, one outside expert. Use when:
 - Iterating quickly
 - Single dominant concern (e.g., correctness)
 - Limited time
@@ -60,7 +61,7 @@ The common case. One implementer, one ruthless reviewer. Use when:
 In two-agent mode:
 - "Disagreements" captures self-review vs external review conflicts (not skipped - dual-review still produces potential disagreements)
 - Convergence: use Phase 3 conditions (same as multi-agent)
-- The external reviewer IS the ruthless reviewer
+- The external expert IS the outside expert
 
 ---
 
@@ -69,12 +70,12 @@ In two-agent mode:
 Choose how you run the loop:
 
 ### Manual log (copy/paste)
-Use `review-log.md` and paste reviewer responses each round. This is the default and is fully checkable with the eval checks.
+Use `review-log.md` and paste expert responses each round. This is the default and is fully checkable with the eval checks.
 
 ### MCP thread (Codex)
-If you have Codex MCP available (`mcp__codex__codex` and `mcp__codex__codex-reply` tools), you can run the reviewer through a single MCP thread and avoid manual copy/paste. Create `review-session.md` and record the thread ID plus round summaries so the loop is auditable.
+If you have Codex MCP available (`mcp__codex__codex` and `mcp__codex__codex-reply` tools), you can run the expert through a single MCP thread and avoid manual copy/paste. Create `review-session.md` and record the thread ID plus round summaries so the loop is auditable.
 
-**Note:** MCP mode is optimized for two-agent mode (one reviewer). For multi-agent reviews, use manual mode or run multiple MCP threads (one per reviewer lens).
+**Note:** MCP mode is optimized for two-agent mode (one expert). For multi-agent reviews, use manual mode or run multiple MCP threads (one per expert lens).
 
 **Prerequisite:** Codex MCP server configured. See `codex mcp-server --help` for setup.
 
@@ -91,8 +92,8 @@ Define the review contract before any review happens.
 - Time budget (rounds or minutes)
 
 ### Reviewer roster
-- **Multi-agent mode**: Pick 2-4 reviewers with different lenses. Ensure at least one is a ruthless reviewer.
-- **Two-agent mode**: One ruthless reviewer. That's it.
+- **Multi-agent mode**: Pick 2-4 experts with different lenses. Ensure at least one is a outside expert.
+- **Two-agent mode**: One outside expert. That's it.
 
 ### Create a session record
 Pick one:
@@ -108,10 +109,10 @@ Pick one:
 
 ## The Dual-Review Pattern (Default)
 
-The implementer is not just a fixer - they are also a reviewer. Every round follows this pattern:
+The implementer is not just a fixer - they are also an evaluator. Every round follows this pattern:
 
-1. **Implementer self-reviews** - Before external review, the implementer examines their own work with fresh eyes. Produce H/M/L findings just like an external reviewer would.
-2. **External reviewer(s) review independently** - For Round 1, do not share self-review or other reviewers' feedback with external reviewers. Each reviewer produces findings independently. In later rounds, sharing the synthesis is fine - reviewers need to know what changed and why. The independence requirement is about getting unbiased initial signal, not about keeping reviewers in the dark about iteration history.
+1. **Implementer self-reviews** - Before external review, the implementer examines their own work with fresh eyes. Produce H/M/L findings just like an external expert would.
+2. **External expert(s) review independently** - For Round 1, do not share self-review or other experts' feedback with external experts. Each expert produces findings independently. In later rounds, sharing the synthesis is fine - experts need to know what changed and why. The independence requirement is about getting unbiased initial signal, not about keeping experts in the dark about iteration history.
 3. **Reconcile** - Compare both sets of findings. Where do they agree? Where do they disagree? Steelman both perspectives.
 4. **Present decision points** - When reconciliation surfaces design tradeoffs, present them to the mediator via AskUserQuestion or text template.
 5. **Implement** - Address agreed actions.
@@ -127,13 +128,13 @@ Each round has four steps: Self-Review, External Review, Reconcile, Synthesize.
 **Between rounds:** After synthesis is approved, the implementer does the work. The next round opens with `### Changes` documenting what was done, then reviews the updated artifact.
 
 ### Step 0: Self-Review
-Before sending to external reviewers, the implementer reviews their own work:
+Before sending to external experts, the implementer reviews their own work:
 - Examine the artifact with a critical lens
 - Produce findings with H/M/L severity labels
 - Be genuinely critical - don't softball yourself
 
 ### Step A: External Review
-Send each external reviewer a brief with constraints and required output structure.
+Send each external expert a brief with constraints and required output structure.
 
 Reviewer brief template:
 ```
@@ -141,10 +142,10 @@ ROLE: [Reviewer lens]
 TASK: Review the artifact for [goal].
 SCOPE: [in scope] / [out of scope]
 CONSTRAINTS:
-- For Round 1: Review independently - do not read self-review or other reviewers' feedback first
+- For Round 1: Review independently - do not read self-review or other experts' feedback first
 - Be specific and actionable
 - Avoid repeats unless you add new evidence
-- If you disagree with another reviewer, say why
+- If you disagree with another expert, say why
 
 OUTPUT FORMAT:
 1) Findings (ordered, severity-labeled)
@@ -155,11 +156,11 @@ OUTPUT FORMAT:
 ```
 
 ### MCP option: Reviewer thread
-If using Codex MCP, start the reviewer in a single thread and reuse it across rounds:
+If using Codex MCP, start the expert in a single thread and reuse it across rounds:
 
 Round 1 (start new thread):
 ```
-mcp__codex__codex(prompt="You are the ruthless reviewer... [artifact path] [scope] [quality bar] [output format]", cwd="...") -> threadId
+mcp__codex__codex(prompt="You are the outside expert... [artifact path] [scope] [quality bar] [output format]", cwd="...") -> threadId
 ```
 
 Round N (reuse thread):
@@ -179,7 +180,7 @@ Synthesis proposal template (implementer writes, mediator approves):
 **Consensus:**
 - ...
 
-**Disagreements:** (self-review vs external, or between external reviewers)
+**Disagreements:** (self-review vs external, or between external experts)
 - [Reviewer/Source] vs [Reviewer/Source]: [topic]
   - Decision: [what we do and why]
 
@@ -284,7 +285,7 @@ No repeats from previous rounds. Use H/M/L severity labels.
 ```
 
 **Round gate:**
-- Each reviewer response uses H/M/L severity labels
+- Each expert response uses H/M/L severity labels
 - Synthesis includes Consensus, Disagreements, Actions, Gate Status
 - Changes logged at start of round (for rounds > 1)
 
@@ -294,7 +295,7 @@ No repeats from previous rounds. Use H/M/L severity labels.
 
 Stop when the loop converges. Use one of these stop conditions:
 - Two consecutive rounds with no open high-severity items (not just "no new" - all H issues must be resolved) AND all Medium issues either fixed or explicitly accepted by mediator
-- No open H issues, all actions addressed, reviewers have no new deltas, AND all Medium issues either fixed or explicitly accepted
+- No open H issues, all actions addressed, experts have no new deltas, AND all Medium issues either fixed or explicitly accepted
 - Time budget reached and risk is explicitly accepted by the mediator (not self-approved by implementer) - must document which H/M issues remain and why
 
 **Close-out artifact:** A final synthesis with decisions, next steps, and human attestation.
@@ -311,7 +312,7 @@ This creates accountability that automated checks cannot provide. Eval checks ar
 
 ## Drop Criteria (Reviewer Pruning)
 
-Drop a reviewer when:
+Drop an expert when:
 - They repeat prior points without new evidence
 - Their feedback is consistently non-actionable
 - They fail to follow the format twice
@@ -319,8 +320,8 @@ Drop a reviewer when:
 
 If dropped, document why in the log.
 
-**Important:** In two-agent mode, if you drop the only external reviewer, you must either:
-1. Replace them with another external reviewer, OR
+**Important:** In two-agent mode, if you drop the only external expert, you must either:
+1. Replace them with another external expert, OR
 2. Escalate to mediator to decide how to proceed
 
 Never continue with self-review only - the External Review per round eval check will fail.
@@ -519,15 +520,15 @@ If any check fails, fix the log structure before proceeding.
 |---|---|---|
 | Reviewers keep repeating | No delta-only constraint | Add ping-back rule, enforce no repeats |
 | Convergence stalls | Disagreements not mediated | Force explicit decisions in synthesis |
-| Low signal feedback | Wrong reviewer lens | Replace or re-brief reviewer |
+| Low signal feedback | Wrong expert lens | Replace or re-brief expert |
 | Too many issues, no action | Missing prioritization | Rank by severity and cut scope |
 | Reviewer contradicts themselves | No evidence requirement | Ask for evidence or drop |
 | MCP session lost | Thread ID not recorded | Record in `review-session.md` and restate context |
 | Implementer steamrolls decisions | Not escalating tradeoffs | Review escalation triggers, re-examine "by design" calls |
 | "By design" used defensively | Avoiding work vs genuine tradeoff | Mediator must approve all "by design" responses |
-| Fast convergence, wrong outcome | Implementer and reviewer aligned but wrong | Human mediator validates key decisions, not just pass/fail |
+| Fast convergence, wrong outcome | Implementer and expert aligned but wrong | Human mediator validates key decisions, not just pass/fail |
 | Eval checks pass on placeholder text | Template text contains patterns that match checks | Use negated character classes like `[^[]` to reject bracket placeholders |
-| Terse reviewer prompts produce shallow reviews | Bare "You are a ruthless reviewer" lacks context | Use rich prompts establishing role, relationship, expertise, collaborative framing |
+| Terse expert prompts produce shallow feedback | Bare "You are a outside expert" lacks context | Use rich prompts establishing role, relationship, expertise, collaborative framing |
 | Checks pass but no real work done | Eval checks are smoke tests, not proof of work | Require human attestation in final synthesis - the real gate |
 | Round 1 external review echoes self-review | Self-review was shared before initial external review | Keep Round 1 reviews independent - share synthesis only in later rounds |
 
@@ -547,7 +548,7 @@ Create `review-log.md` and append per round.
 
 ## Reviewers
 - Reviewer A: [lens]
-(two-agent mode: just one reviewer)
+(two-agent mode: just one expert)
 
 ---
 
@@ -763,7 +764,7 @@ Thread ID: [from mcp__codex__codex response]
 
 ## Exemplars
 
-Study these before running a review:
+Study these before consulting an outside expert:
 
 - **skill-crafting** (`skills/skill-crafting/`) - Co-developed using this skill. Multi-round MCP sessions (threads `019bda94-d0c9-7c23-aae0-d4d933a2547d`, `019bdc86-502b-7ca1-97e9-814eaa7355dd`, `019bdc91-1ea3-71c3-ab8f-bda225806061`). Demonstrates severity progression H→M→L→clear, mid-flight fixes, dual-review pattern (self-review + external review + reconcile), convergence.
 
@@ -772,7 +773,7 @@ Study these before running a review:
 ## Notes on Structure Emergence
 
 Do not over-prescribe the format until you hit friction.
-- If reviewers miss key areas, tighten the template.
+- If experts miss key areas, tighten the template.
 - If output feels bloated, remove sections.
 - If convergence is slow, add stricter stop conditions.
 
