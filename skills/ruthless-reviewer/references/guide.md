@@ -194,7 +194,24 @@ Before ping-back, implement the agreed changes. Don't review stale artifacts.
 | Accepting limitation | Mediator decides, not implementer |
 | Architectural choice | Affects overall structure |
 
-**When triggers fire** - STOP, use full template:
+**When triggers fire** - STOP and present decision:
+
+**Option 1: AskUserQuestion tool** (Claude Code)
+```
+AskUserQuestion({
+  questions: [{
+    question: "[Issue requiring decision]?",
+    header: "Design",
+    options: [
+      { label: "Option A (Recommended)", description: "[approach] - Pro: X, Con: Y" },
+      { label: "Option B", description: "[approach] - Pro: X, Con: Y" }
+    ],
+    multiSelect: false
+  }]
+})
+```
+
+**Option 2: Text template** (portable fallback)
 ```
 DECISION POINT: [issue]
 
@@ -211,7 +228,7 @@ Recommendation: [A/B] because [reasoning]
 Your call?
 ```
 
-Wait for explicit approval before proceeding. Log: `Approved: [decision] by [user]`
+Wait for explicit response before proceeding. Log: `Approved: [decision] by [user]`
 
 **When no triggers fire** - state explicitly in synthesis:
 ```

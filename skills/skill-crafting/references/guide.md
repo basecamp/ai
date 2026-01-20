@@ -104,7 +104,24 @@ STOP and involve the human when you encounter:
 | **Accepting limitations** | Documenting a gap rather than fixing it |
 | **Architectural choice** | Solution affects overall structure |
 
-**When triggers fire** - STOP, use full template:
+**When triggers fire** - STOP and present decision:
+
+**Option 1: AskUserQuestion tool** (Claude Code)
+```
+AskUserQuestion({
+  questions: [{
+    question: "[Issue requiring decision]?",
+    header: "Design",
+    options: [
+      { label: "Option A (Recommended)", description: "[approach] - Pro: X, Con: Y" },
+      { label: "Option B", description: "[approach] - Pro: X, Con: Y" }
+    ],
+    multiSelect: false
+  }]
+})
+```
+
+**Option 2: Text template** (portable fallback)
 ```
 DECISION POINT: [issue]
 
@@ -121,7 +138,7 @@ Recommendation: [A/B] because [reasoning]
 Your call?
 ```
 
-Wait for explicit approval. Log: `Approved: [decision] by [user]`
+Wait for explicit response before proceeding. Log: `Approved: [decision] by [user]`
 
 **When no triggers fire** - state explicitly:
 ```
