@@ -326,7 +326,7 @@ triggers:                  # Activation phrases
 Study these before starting a new skill:
 
 - **llms-txt** (`skills/llms-txt/`) - Demonstrates eval checks, failure modes, templates.
-- **ruthless-reviewer** (`skills/ruthless-reviewer/`) - Co-developed using this skill. 7-round MCP review session.
+- **ruthless-reviewer** (`skills/ruthless-reviewer/`) - Co-developed using this skill. 10+ round MCP review session with dual-review pattern.
 
 ---
 
