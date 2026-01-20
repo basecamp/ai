@@ -92,6 +92,37 @@ Don't wait until done. When you hit friction:
 - Add a failure mode entry
 - Add or refine an eval check
 
+### Escalation triggers
+STOP and involve the human when you encounter:
+
+| Trigger | Example |
+|---------|---------|
+| **Design tradeoff** | Simple-but-limited vs complex-but-complete |
+| **Scope change** | Fix would significantly change skill's purpose |
+| **"By design" response** | Wanting to mark an issue as intentional |
+| **Repeated issue** | Same problem surfaces 2+ rounds |
+| **Accepting limitations** | Documenting a gap rather than fixing it |
+| **Architectural choice** | Solution affects overall structure |
+
+**Format for escalation:**
+```
+DECISION POINT: [issue]
+
+Option A: [approach]
+- Pro: ...
+- Con: ...
+
+Option B: [approach]
+- Pro: ...
+- Con: ...
+
+Recommendation: [A/B] because [reasoning]
+
+Your call?
+```
+
+Don't steamroll through design decisions. The human's judgment on tradeoffs is the point.
+
 ### Draft eval checks
 Eval checks should be runnable where possible:
 - `grep` for pattern violations
@@ -343,6 +374,8 @@ sed '/^```/,/^```/d' references/guide.md | grep -A10 "^## Exemplars" | grep -qE 
 | Others can't use the skill | Author-dependent tacit knowledge | Add exemplars and failure modes |
 | Skill changes every target | Not converging | Check if problem is well-scoped |
 | Over-specified structure | Designed upfront, not emerged | Remove what doesn't prevent failures |
+| Design decisions made without human | Implementer steamrolled through tradeoffs | Add escalation triggers, re-review decisions |
+| "By design" used to dismiss issues | Avoiding work, not genuine tradeoff | Escalate all "by design" responses to mediator |
 
 ---
 

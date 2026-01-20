@@ -29,8 +29,10 @@ Reviewers label findings with H/M/L. The mediator uses these to enforce gates.
 ## Roles
 
 - **Implementer**: the agent doing the work.
-- **Mediator**: you. You set scope, reconcile disagreements, and decide what changes.
+- **Mediator**: you (the human). You set scope, reconcile disagreements, and decide what changes.
 - **Reviewer(s)**: independent reviewers with distinct lenses.
+
+**Critical:** The implementer must STOP and escalate to the mediator - not proceed autonomously - when design decisions arise.
 
 Reviewer lenses you can assign:
 - Ruthless reviewer (correctness and risks)
@@ -178,6 +180,36 @@ Before ping-back, implement the agreed changes. Don't review stale artifacts.
 - Log what changed: `### Changes (Round N)`
 - Gate: Changes logged before ping-back
 
+**STOP for escalation** if any action involves:
+
+| Trigger | Action |
+|---------|--------|
+| Design tradeoff | Present options A/B with pros/cons |
+| "By design" response | Don't dismiss - escalate to mediator |
+| Scope change | Confirm before proceeding |
+| Repeated issue (2+ rounds) | May indicate deeper problem |
+| Accepting limitation | Mediator decides, not implementer |
+| Architectural choice | Affects overall structure |
+
+**Escalation format:**
+```
+DECISION POINT: [issue]
+
+Option A: [approach]
+- Pro: ...
+- Con: ...
+
+Option B: [approach]
+- Pro: ...
+- Con: ...
+
+Recommendation: [A/B] because [reasoning]
+
+Your call?
+```
+
+The mediator's judgment on tradeoffs is the point of this process. Implementers who steamroll through design decisions defeat the purpose.
+
 ### Step D: Ping-back
 Send targeted follow-ups only. Ask for deltas, not repeats.
 
@@ -308,6 +340,9 @@ If any check fails, fix the log structure before proceeding.
 | Too many issues, no action | Missing prioritization | Rank by severity and cut scope |
 | Reviewer contradicts themselves | No evidence requirement | Ask for evidence or drop |
 | MCP session lost | Thread ID not recorded | Record in `review-session.md` and restate context |
+| Implementer steamrolls decisions | Not escalating tradeoffs | Review escalation triggers, re-examine "by design" calls |
+| "By design" used defensively | Avoiding work vs genuine tradeoff | Mediator must approve all "by design" responses |
+| Fast convergence, wrong outcome | Implementer and reviewer aligned but wrong | Human mediator validates key decisions, not just pass/fail |
 
 ---
 
