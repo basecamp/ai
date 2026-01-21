@@ -136,7 +136,7 @@ Run all 12 eval checks. Fix failures before shipping.
 | 8 | Has EXECUTE NOW: | `grep -q "^EXECUTE NOW:" install.md` | Exit 0 |
 | 9 | No troubleshooting | `grep -qi "troubleshoot" install.md` | Exit 1 |
 | 10 | Each Step has Verify | Compare step count to verify count | Equal |
-| 11 | Env vars have defaults | `grep -E '\$[A-Z_]+[^:-]' install.md` | Exit 1 (none without defaults) |
+| 11 | Env vars have defaults | `grep -E '\$[A-Z_]+($\|[^}:-])' install.md` | Exit 1 (none without defaults) |
 | 12 | EXECUTE NOW restates DONE WHEN | Manual: compare the two conditions | Same command |
 
 ```bash
@@ -180,8 +180,8 @@ VERIFIES=$(echo "$MAIN_FLOW" | grep -c "^\*\*Verify:\*\*")
 [ "$STEPS" -eq "$VERIFIES" ] && echo "PASS ($STEPS steps, $VERIFIES verifies)" || echo "FAIL ($STEPS steps, $VERIFIES verifies)"
 
 echo "11) Env vars have defaults:"
-# Check for $VAR patterns that don't use ${VAR:-default} syntax
-if grep -E '\$[A-Z_]+[^}:-]' "$FILE" | grep -v '^\$\{' | grep -qv ':-'; then
+# Check for $VAR patterns that don't use ${VAR:-default} syntax (including end-of-line)
+if grep -E '\$[A-Z_]+($|[^}:-])' "$FILE" | grep -qv ':-'; then
   echo "WARN: Check env vars manually"
 else
   echo "PASS"
