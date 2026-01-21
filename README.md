@@ -18,6 +18,7 @@ General-purpose skills designed for broad use.
 | Skill | Description |
 |-------|-------------|
 | [consult-outside-expert](skills/consult-outside-expert/) | Consult an outside expert (via Codex MCP) to collaboratively refine, stress-test, and converge on excellent outcomes |
+| [install-md](skills/install-md/) | Create install.md files optimized for AI agent execution |
 | [skill-crafting](skills/skill-crafting/) | Create and refine agent skills through co-development and eval loops |
 
 ## Internal
