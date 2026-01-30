@@ -1,20 +1,65 @@
 ---
 name: consult-outside-expert
-description: Consult an outside expert (via Codex MCP) to collaboratively refine, stress-test, and converge on excellent outcomes
+description: |
+  Get a second opinion via Codex MCP. Use for stress-testing ideas, getting fresh perspective,
+  steelmanning arguments, or iteratively refining work through expert back-and-forth.
+  Invoke for ANY request involving external review, feedback, or consultation.
 triggers:
+  # Direct invocations
   - consult outside expert
-  - outside expert consult
-  - get outside expert input
-  - external consultation
+  - outside expert
+  - /consult
+  # Codex-specific
+  - codex
+  - ask codex
+  - use codex
+  - codex sparring
+  - codex review
+  - codex feedback
+  # Expert consultation
   - expert consultation
   - expert review
-  - outside review
+  - expert feedback
+  - get expert input
+  - external consultation
   - external review
-  - get expert feedback
-  - codex sparring
+  - outside review
+  # Second opinion / fresh perspective
+  - second opinion
+  - another perspective
+  - fresh perspective
+  - different angle
+  - outside perspective
+  - external perspective
+  # Stress testing / validation
+  - stress test
+  - pressure test
+  - sanity check
+  - reality check
+  - gut check
+  - sense check
+  - validate my thinking
+  - check my work
+  - review my approach
+  # Informal / conversational
+  - bounce this off
+  - run this by
+  - get feedback on
+  - what do you think about
+  # Refinement / convergence
   - cross-agent refinement
   - dual-agent convergence
-  - pressure test with codex
+  - iterative refinement
+  - steelman
+  # Questions and capability discovery
+  - can I get feedback
+  - can I consult
+  - how do I get expert
+  - should I consult
+  - is there a way to get review
+  - what is codex
+  - does codex
+  - how does codex work
 ---
 
 # consult-outside-expert
