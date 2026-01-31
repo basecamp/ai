@@ -73,7 +73,7 @@ Choose how you run the loop:
 Use `review-log.md` and paste expert responses each round. This is the default and is fully checkable with the eval checks.
 
 ### MCP thread (Codex)
-If you have Codex MCP available (`mcp__codex__codex` and `mcp__codex__codex-reply` tools), you can run the expert through a single MCP thread and avoid manual copy/paste. Create `review-session.md` and record the thread ID plus round summaries so the loop is auditable.
+If you have Codex MCP available (`mcp__codex__codex` and `mcp__codex__codex-reply` tools), you can run the expert through a single MCP thread and avoid manual copy/paste. Create `review-session.md` and record the thread ID plus round summaries to track progress.
 
 **Note:** MCP mode is optimized for two-agent mode (one expert). For multi-agent reviews, use manual mode or run multiple MCP threads (one per expert lens).
 
@@ -99,6 +99,8 @@ Define the review contract before any review happens.
 Pick one:
 - **Manual log:** Create `review-log.md` in the working directory. Use the template below so checks can be run.
 - **MCP thread:** Create `review-session.md` and record the thread ID. Use the template below.
+
+**These files are session artifacts, not permanent documentation.** The improved artifact is the deliverable; the review log tracks progress during the session but doesn't need to persist in version control. See "Cleanup" at the end of Phase 3.
 
 **Gate to proceed:**
 - Artifact and scope are stated
@@ -307,6 +309,19 @@ Stop when the loop converges. Use one of these stop conditions:
 This creates accountability that automated checks cannot provide. Eval checks are smoke tests; attestation is the real gate.
 
 **Note:** The attestation is human accountability, not automated enforcement. If someone lies in their attestation, that's fraud - the system worked, the human failed. The check only verifies the field exists and isn't obviously a placeholder.
+
+### Cleanup
+
+Review files are session artifacts. After convergence:
+
+1. **Delete the file** - The improved artifact is the deliverable, not the log
+2. **Prevent accidental commits** - Add to project `.gitignore` or global `~/.gitignore_global`:
+   ```
+   review-session.md
+   review-log.md
+   ```
+
+If you need to preserve review history, move the file outside the repo before cleanup.
 
 ---
 
@@ -639,6 +654,8 @@ Create `review-log.md` and append per round.
 - Next steps: ...
 
 **Attestation:** I confirm this log reflects genuine review work, not template filling. - [NAME]
+
+**After attestation:** Delete this file. The improved artifact is the deliverable.
 ```
 
 ---
@@ -758,6 +775,8 @@ Thread ID: [from mcp__codex__codex response]
 - Next steps: ...
 
 **Attestation:** I confirm this log reflects genuine review work, not template filling. - [NAME]
+
+**After attestation:** Delete this file. The improved artifact is the deliverable.
 ```
 
 ---
