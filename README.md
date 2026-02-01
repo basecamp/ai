@@ -1,5 +1,3 @@
-# 37signals AI Skills
-
 ```bash
 npx skills add basecamp/skills
 ```
