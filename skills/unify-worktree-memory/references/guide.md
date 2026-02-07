@@ -272,7 +272,10 @@ mkdir -p "$base_memory"
 if [[ -d "$cwd_memory" ]]; then
   if [[ -f "$cwd_memory/MEMORY.md" ]]; then
     if [[ -f "$base_memory/MEMORY.md" ]]; then
-      cat "$cwd_memory/MEMORY.md" >> "$base_memory/MEMORY.md"
+      {
+        printf '\n## From worktree: %s\n\n' "$(basename "$cwd")"
+        cat "$cwd_memory/MEMORY.md"
+      } >> "$base_memory/MEMORY.md"
     else
       mv "$cwd_memory/MEMORY.md" "$base_memory/MEMORY.md"
     fi
