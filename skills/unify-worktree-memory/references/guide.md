@@ -129,12 +129,17 @@ process_worktree_memory() {
     ((merged++)) || true
   fi
 
-  # Copy topic files
+  # Copy topic files (rename on conflict to avoid data loss)
   while IFS= read -r topic_file; do
     fname=$(basename "$topic_file")
     [[ "$fname" == "MEMORY.md" ]] && continue
     if [[ -f "$base_memory/$fname" ]]; then
-      echo "  SKIP topic (exists in base): $fname"
+      # Rename with branch hint to preserve both versions
+      dest="${fname%.*}-${branch_hint}.${fname##*.}"
+      if [[ "$DRY_RUN" == false ]]; then
+        cp "$topic_file" "$base_memory/$dest"
+      fi
+      echo "  COPIED topic (renamed): $fname -> $dest"
     else
       if [[ "$DRY_RUN" == false ]]; then
         cp "$topic_file" "$base_memory/$fname"
@@ -277,7 +282,13 @@ if [[ -d "$cwd_memory" ]]; then
     [[ -e "$f" ]] || continue
     fname=$(basename "$f")
     [[ "$fname" == "MEMORY.md" ]] && continue
-    [[ ! -e "$base_memory/$fname" ]] && mv "$f" "$base_memory/$fname"
+    if [[ -e "$base_memory/$fname" ]]; then
+      # Rename with worktree dir name to preserve both versions
+      wt_hint=$(basename "$cwd")
+      mv "$f" "$base_memory/${fname%.*}-${wt_hint}.${fname##*.}"
+    else
+      mv "$f" "$base_memory/$fname"
+    fi
   done
 
   rm -rf "$cwd_memory"
